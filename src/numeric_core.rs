@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use crate::ciphers::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum NumericCoreOps {
@@ -6,14 +7,15 @@ enum NumericCoreOps {
     Pink,    // Multiply
     Violet,  // Divide no remainder
 }
+use NumericCoreOps::*;
 
 const NUMERIC_CORE_OP_COMBOS: &[(NumericCoreOps, NumericCoreOps, NumericCoreOps)] = &[
-    (NumericCoreOps::Yellow,   NumericCoreOps::Pink, NumericCoreOps::Violet),
-    (NumericCoreOps::Yellow,   NumericCoreOps::Violet, NumericCoreOps::Pink),
-    (NumericCoreOps::Pink,     NumericCoreOps::Yellow, NumericCoreOps::Violet),
-    (NumericCoreOps::Pink,     NumericCoreOps::Violet, NumericCoreOps::Yellow),
-    (NumericCoreOps::Violet,   NumericCoreOps::Yellow, NumericCoreOps::Pink),
-    (NumericCoreOps::Violet,   NumericCoreOps::Pink, NumericCoreOps::Yellow),
+    (Yellow,   Pink,   Violet),
+    (Yellow,   Violet, Pink),
+    (Pink,     Yellow, Violet),
+    (Pink,     Violet, Yellow),
+    (Violet,   Yellow, Pink),
+    (Violet,   Pink,   Yellow),
 ];
 
 fn yellow_subtract(lhs: u64, rhs: u64) -> Option<u64> {
@@ -24,8 +26,8 @@ fn yellow_subtract(lhs: u64, rhs: u64) -> Option<u64> {
     }
 }
 
-fn pink_multiply(lhs: u64, rhs: u64) -> u64 {
-    lhs * rhs
+fn pink_multiply(lhs: u64, rhs: u64) -> Option<u64> {
+    Some(lhs * rhs)
 }
 
 fn violet_divide(lhs: u64, rhs: u64) -> Option<u64> {
@@ -39,58 +41,36 @@ fn violet_divide(lhs: u64, rhs: u64) -> Option<u64> {
 impl NumericCoreOps {
     pub fn apply(&self, lhs: u64, rhs: u64) -> Option<u64> {
         match self {
-            NumericCoreOps::Yellow => yellow_subtract(lhs, rhs),
-            NumericCoreOps::Pink => Some(pink_multiply(lhs, rhs)),
-            NumericCoreOps::Violet => violet_divide(lhs, rhs),
+            Yellow => yellow_subtract(lhs, rhs),
+            Pink => pink_multiply(lhs, rhs),
+            Violet => violet_divide(lhs, rhs),
         }
     }
 }
 
-fn split_into_four_parts_int(x: u64) -> Vec<[u64; 4]> {
-    let s = x.to_string();
-    assert!(s.len() >= 4);
-    let n = s.len();
-    (1..n)
-        .combinations(3)
-        .filter_map(|indices| {
-            let (i, j, k) = (indices[0], indices[1], indices[2]);
-            if i < j && j < k && k < n {
-                Some([
-                    s[0..i].parse().unwrap(),
-                    s[i..j].parse().unwrap(),
-                    s[j..k].parse().unwrap(),
-                    s[k..n].parse().unwrap(),
-                ])
-            } else {
-                None
-            }
-        })
-        .collect()
-}
+pub fn numeric_core_word(word: &str) -> Option<char> {
+    assert_eq!(word.len(), 4);
+    let numeric: Vec<u64> = word.chars().map(|c| char_to_numeric(c).unwrap()).collect();
+    let [a, b, c, d] = numeric[..] else { return None };
 
-pub fn numeric_core(x: u64) -> Option<u64> {
-    if x < 1000 {
-        Some(x)
-    } else {
-        let candidates = split_into_four_parts_int(x);
-        let mut results: Vec<u64> = Vec::new();
-        for candidate in candidates {
-            for (op1, op2, op3) in NUMERIC_CORE_OP_COMBOS {
-                if let Some(result) = op1.apply(candidate[0], candidate[1])
-                    .and_then(|x| op2.apply(x, candidate[2]))
-                    .and_then(|x| op3.apply(x, candidate[3])) {
-                        results.push(result);
-                }
-            }
+    let mut results: Vec<u64> = Vec::new();
+    for (op1, op2, op3) in NUMERIC_CORE_OP_COMBOS {
+        // Need to reverse order of ops when pink and violet 
+        // are continguous and violet is first
+        let result = match (op1, op2, op3) {
+            (Violet, Pink, _)   => op2.apply(b, c).and_then(|x| op1.apply(a, x)).and_then(|x| op3.apply(x, d)),
+            (_, Violet, Pink)   => op1.apply(a, b).and_then(|x| op3.apply(x, d)).and_then(|x| op2.apply(x, c)),
+            (_, _, _) => op1.apply(a, b).and_then(|x| op2.apply(x, c)).and_then(|x| op3.apply(x, d)),
+        };
+        if result.is_some() {
+            results.push(result.unwrap());
         }
-        if results.is_empty() {
-            None
-        } else {
-            // sort smallest to largest
-            results.sort();
-            // Recurse
-            numeric_core(results[0])
-        } 
+    }
+    if results.is_empty() {
+        None
+    } else {
+        results.sort();
+        numeric_to_char(results[0]).ok()
     }
 }
 
@@ -99,17 +79,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_numeric_core_small() {
-        assert_eq!(numeric_core(123), Some(123));
-    }
-
-    #[test]
-    fn test_numeric_core_866455() {
-        assert_eq!(numeric_core(86455), Some(18));
-    }
-
-    #[test]
-    fn test_numeric_core_3614() {
-        assert_eq!(numeric_core(3614), Some(14));
+    fn test_numeric_core_word() {
+        assert_eq!(numeric_core_word("PIGS"), Some('S'));
     }
 }
