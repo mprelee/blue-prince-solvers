@@ -16,7 +16,7 @@ const NUMERIC_CORE_OP_COMBOS: &[(NumericCoreOps, NumericCoreOps, NumericCoreOps)
     (NumericCoreOps::Violet,   NumericCoreOps::Pink, NumericCoreOps::Yellow),
 ];
 
-fn yellow_subtract(lhs: u32, rhs: u32) -> Option<u32> {
+fn yellow_subtract(lhs: u64, rhs: u64) -> Option<u64> {
     if lhs >= rhs {
         Some(lhs - rhs)
     } else {
@@ -24,11 +24,11 @@ fn yellow_subtract(lhs: u32, rhs: u32) -> Option<u32> {
     }
 }
 
-fn pink_multiply(lhs: u32, rhs: u32) -> u32 {
+fn pink_multiply(lhs: u64, rhs: u64) -> u64 {
     lhs * rhs
 }
 
-fn violet_divide(lhs: u32, rhs: u32) -> Option<u32> {
+fn violet_divide(lhs: u64, rhs: u64) -> Option<u64> {
     if rhs != 0 && lhs % rhs == 0 {
         Some(lhs / rhs)
     } else {
@@ -37,7 +37,7 @@ fn violet_divide(lhs: u32, rhs: u32) -> Option<u32> {
 }
 
 impl NumericCoreOps {
-    pub fn apply(&self, lhs: u32, rhs: u32) -> Option<u32> {
+    pub fn apply(&self, lhs: u64, rhs: u64) -> Option<u64> {
         match self {
             NumericCoreOps::Yellow => yellow_subtract(lhs, rhs),
             NumericCoreOps::Pink => Some(pink_multiply(lhs, rhs)),
@@ -46,8 +46,7 @@ impl NumericCoreOps {
     }
 }
 
-
-fn split_into_four_parts(x: u32) -> Vec<[u32; 4]> {
+fn split_into_four_parts_int(x: u64) -> Vec<[u64; 4]> {
     let s = x.to_string();
     assert!(s.len() >= 4);
     let n = s.len();
@@ -69,26 +68,21 @@ fn split_into_four_parts(x: u32) -> Vec<[u32; 4]> {
         .collect()
 }
 
-pub fn numeric_core(x: u32) -> Option<u32> {
-    if x == 0 {
-        return None;
-    } else if x < 1000 {
+pub fn numeric_core(x: u64) -> Option<u64> {
+    if x < 1000 {
         Some(x)
     } else {
-        let candidates = split_into_four_parts(x);
-        let mut results: Vec<u32> = Vec::new();
+        let candidates = split_into_four_parts_int(x);
+        let mut results: Vec<u64> = Vec::new();
         for candidate in candidates {
             for (op1, op2, op3) in NUMERIC_CORE_OP_COMBOS {
                 if let Some(result) = op1.apply(candidate[0], candidate[1])
                     .and_then(|x| op2.apply(x, candidate[2]))
                     .and_then(|x| op3.apply(x, candidate[3])) {
-                        if result > 0 {
-                            results.push(result);
-                        }
+                        results.push(result);
                 }
             }
         }
-        
         if results.is_empty() {
             None
         } else {
@@ -96,7 +90,8 @@ pub fn numeric_core(x: u32) -> Option<u32> {
             results.sort();
             // Recurse
             numeric_core(results[0])
-        } }
+        } 
+    }
 }
 
 #[cfg(test)]

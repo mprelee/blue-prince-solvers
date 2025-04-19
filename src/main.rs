@@ -1,6 +1,7 @@
-use blue_prince_solver::numeric_core;
+use blue_prince_solver::*;
 
 fn main() {
-    let x = 1000200112;
-    println!("numeric_core({}) = {:?}", x, numeric_core(x));
+    todo!("Add a CLI");
+    //let x = "MCCXIII";
+    //println!("numeric_core_roman({}) = {:?}", x, numeric_core_roman(x));
 }
