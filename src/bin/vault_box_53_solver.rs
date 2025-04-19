@@ -1,9 +1,8 @@
-mod ciphers;
-mod numeric_core;
-
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
+
+use blue_prince_solvers::core_cipher;
 
 fn main() -> io::Result<()> {
     // Open the vault box file
@@ -20,7 +19,7 @@ fn main() -> io::Result<()> {
         let mut result_word = String::new();
         for word in words {
             // Convert to character
-            let character = numeric_core::numeric_core_word(word).unwrap_or_else(|| {
+            let character = core_cipher::numeric_core::numeric_core_word(word).unwrap_or_else(|| {
                 eprintln!("Error converting word to character: {}", word);
                 '?'
             });
@@ -33,4 +32,4 @@ fn main() -> io::Result<()> {
     }
     
     Ok(())
-}
+} 

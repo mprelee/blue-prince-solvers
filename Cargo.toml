@@ -1,7 +1,15 @@
 [package]
-name = "blue-prince-solver"
+name = "blue-prince-solvers"
 version = "0.1.0"
 edition = "2024"
+
+[lib]
+name = "blue_prince_solvers"
+path = "src/lib.rs"
+
+[[bin]]
+name = "vault-box-solver"
+path = "src/bin/vault_box_53_solver.rs"
 
 [dependencies]
 pest = "2.8.0"

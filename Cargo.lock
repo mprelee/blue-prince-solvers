@@ -39,7 +39,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "blue-prince-solver"
+name = "blue-prince-solvers"
 version = "0.1.0"
 dependencies = [
  "itertools",
