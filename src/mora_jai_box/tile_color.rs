@@ -40,7 +40,7 @@ impl TilePosition {
         BottomCenter,
         BottomRight,
     ];
-    pub fn get_neighbors(&self) -> Vec<TilePosition> {
+    pub fn get_4pt_neighbors(&self) -> Vec<TilePosition> {
         match self {
             TopLeft => vec![TopCenter, MiddleLeft],
             TopCenter => vec![TopLeft, TopRight, MiddleCenter],
@@ -53,8 +53,8 @@ impl TilePosition {
             BottomRight => vec![MiddleRight, BottomCenter],
         }
     }
-    pub fn count_neighbors(&self) -> usize {
-        self.get_neighbors().len()
+    pub fn count_4pt_neighbors(&self) -> usize {
+        self.get_4pt_neighbors().len()
     }
 }
 
@@ -154,7 +154,7 @@ impl Tiles {
     // White — Tile expands outwards if there are any adjacent gray tiles. 
     // If there are no adjacent gray tiles, the white tile will disappear.
     fn white_press(&mut self, pos: TilePosition) {
-        for neighbor in pos.get_neighbors() {
+        for neighbor in pos.get_4pt_neighbors() {
             if self.get_color(neighbor) == Gray {
                 self.set_color(pos, White);
             }
@@ -178,5 +178,8 @@ impl Tiles {
         };
         self.swap(pos, swap_pos);
     }
-
+    // Rotates tiles clockwise around the pressed tile
+    fn pink_press(&mut self, pos: TilePosition) {
+        todo!()
+    }
 }
